@@ -6,14 +6,11 @@ package it.unibo.collections.social.impl;
 import it.unibo.collections.social.api.SocialNetworkUser;
 import it.unibo.collections.social.api.User;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 
@@ -27,15 +24,9 @@ import java.util.Set;
  */
 public final class SocialNetworkUserImpl<U extends User> extends UserImpl implements SocialNetworkUser<U> {
 
-    /*
-     *
-     * [FIELDS]
-     *
-     * Define any necessary field
-     *
-     * In order to save the people followed by a user organized in groups, adopt
-     * a generic-type Map:  think of what type of keys and values would best suit the requirements
-     */
+    private List<U> followedList = new LinkedList<>();
+    private Map<String,List<U>> groupList = new LinkedHashMap<>();
+    
 
     /*
      * [CONSTRUCTORS]
@@ -62,13 +53,15 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      *            application
      */
     public SocialNetworkUserImpl(final String name, final String surname, final String user, final int userAge) {
-        super(null, null, null, 0);
+        super(name, surname, user, userAge);
     }
 
     /*
      * 2) Define a further constructor where the age defaults to -1
      */
-
+    public SocialNetworkUserImpl(final String name, final String surname, final String user) {
+        super(name, surname, user, -1);
+    }
     /*
      * [METHODS]
      *
@@ -76,6 +69,14 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      */
     @Override
     public boolean addFollowedUser(final String circle, final U user) {
+        if(!followedList.contains(user)) {
+            followedList.add(user);
+        }
+        List<U> utents = groupList.computeIfAbsent(circle, k -> new LinkedList<>());
+        if(!utents.contains(user)) {
+            utents.add(user);
+            return true;
+        }
         return false;
     }
 
@@ -86,11 +87,14 @@ public final class SocialNetworkUserImpl<U extends User> extends UserImpl implem
      */
     @Override
     public Collection<U> getFollowedUsersInGroup(final String groupName) {
-        return null;
+        if (groupList.get(groupName) != null) {
+            return new LinkedList<>(groupList.get(groupName));
+        }
+        return new LinkedList<>();
     }
 
     @Override
     public List<U> getFollowedUsers() {
-        return null;
+        return this.followedList;
     }
 }

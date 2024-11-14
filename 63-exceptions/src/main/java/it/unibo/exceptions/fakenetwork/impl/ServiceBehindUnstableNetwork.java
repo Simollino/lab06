@@ -1,6 +1,7 @@
 package it.unibo.exceptions.fakenetwork.impl;
 
 import it.unibo.exceptions.arithmetic.ArithmeticService;
+import it.unibo.exceptions.fakenetwork.NetworkException;
 import it.unibo.exceptions.fakenetwork.api.NetworkComponent;
 
 import java.io.IOException;
@@ -29,8 +30,13 @@ public final class ServiceBehindUnstableNetwork implements NetworkComponent {
         /*
          * The probability should be in [0, 1[!
          */
-        this.failProbability = failProbability;
-        randomGenerator = new Random(randomSeed);
+        if(failProbability >= 0 && failProbability<1 ) {
+            this.failProbability = failProbability;
+            randomGenerator = new Random(randomSeed);
+        }
+        else {
+            throw new IllegalArgumentException("Invalid value");
+        }
     }
 
     /**
@@ -51,12 +57,13 @@ public final class ServiceBehindUnstableNetwork implements NetworkComponent {
     public void sendData(final String data) throws IOException {
         accessTheNetwork(data);
         final var exceptionWhenParsedAsNumber = nullIfNumberOrException(data);
-        if (KEYWORDS.contains(data) || exceptionWhenParsedAsNumber == null) {
-            commandQueue.add(data);
-        } else {
-            final var message = data + " is not a valid keyword (allowed: " + KEYWORDS + "), nor is a number";
-            System.out.println(message);
-            commandQueue.clear();
+        if (KEYWORDS.contains(data) || exceptionWhenParsedAsNumber == null) {      
+            try { 
+                commandQueue.add(data);
+            }
+            catch (NumberFormatException e) {
+                throw new IllegalArgumentException(data + " is not a valid keyword (allowed: " + KEYWORDS + "), nor is a number",e);
+            }
             /*
              * This method, in this point, should throw an IllegalStateException.
              * Its cause, however, is the previous NumberFormatException.
@@ -77,9 +84,9 @@ public final class ServiceBehindUnstableNetwork implements NetworkComponent {
         }
     }
 
-    private void accessTheNetwork(final String message) throws IOException {
+    private void accessTheNetwork(final String message) throws NetworkException {
         if (randomGenerator.nextDouble() < failProbability) {
-            throw new IOException("Generic I/O error");
+            throw new NetworkException("Network access error");
         }
     }
 

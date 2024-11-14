@@ -3,6 +3,7 @@ package it.unibo.exceptions;
 import it.unibo.exceptions.fakenetwork.api.NetworkComponent;
 import it.unibo.exceptions.fakenetwork.impl.ServiceBehindUnstableNetwork;
 
+import java.io.IOException;
 import java.io.PrintStream;
 
 import static it.unibo.exceptions.arithmetic.ArithmeticService.DIVIDED;
@@ -47,6 +48,16 @@ public final class UseArithmeticService {
          * This method should re-try to send message to the provided server, catching all IOExceptions,
          * until it succeeds.
          */
+        boolean success = false;
+        while(!success) {
+            try {
+                server.sendData(message);
+                success = true;
+                System.out.println("Succeded");
+            } catch (IOException e) {
+                System.out.println("Error in sending data to server...");
+            }
+        }
     }
 
     private static String retryReceiveOnNetworkError(final NetworkComponent server) {
@@ -54,6 +65,15 @@ public final class UseArithmeticService {
          * This method should re-try to retrieve information from the provided server, catching all IOExceptions,
          * until it succeeds.
          */
+        boolean success = false;
+        while(!success) {
+            try {
+                success = true;
+                return server.receiveResponse();
+            } catch (IOException e) {
+                System.out.println("Error in retrieving information from server...");
+            }
+        }
         return null;
     }
 
